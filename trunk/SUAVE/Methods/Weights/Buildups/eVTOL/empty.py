@@ -92,7 +92,7 @@ def empty(config,
                         Servomotors
                     Systems.
                         Avionics
-                        ECS
+                        ESC
                         BRS
                         Wiring
                     Payload 
@@ -143,7 +143,7 @@ def empty(config,
     output.passengers   = config.passengers * 70.   * Units.kg
     output.avionics     = 15.                       * Units.kg
     output.landing_gear = MTOW * 0.02               * Units.kg
-    output.ECS          = config.passengers * 7.    * Units.kg 
+    output.ESC          = config.passengers * 7.    * Units.kg 
 
 
     # Select a length scale depending on what kind of vehicle this is
@@ -199,14 +199,14 @@ def empty(config,
         if isinstance(propulsor, Lift_Cruise):
             propulsor.rotor_esc.origin[0][0]                                 = 0.51 * length_scale
             propulsor.rotor_esc.mass_properties.center_of_gravity[0][0]      = 0.0
-            propulsor.rotor_esc.mass_properties.mass                         = output.ECS
+            propulsor.rotor_esc.mass_properties.mass                         = output.ESC
             propulsor.propeller_esc.origin[0][0]                             = 0.51 * length_scale
             propulsor.propeller_esc.mass_properties.center_of_gravity[0][0]  = 0.0
-            propulsor.propeller_esc.mass_properties.mass                     = output.ECS
+            propulsor.propeller_esc.mass_properties.mass                     = output.ESC
         else:
             propulsor.esc.origin[0][0]                                       = 0.51 * length_scale
             propulsor.esc.mass_properties.center_of_gravity[0][0]            = 0.0
-            propulsor.esc.mass_properties.mass                               = output.ECS
+            propulsor.esc.mass_properties.mass                               = output.ESC
 
         #-------------------------------------------------------------------------------
         # Rotor, Propeller, Motor, Servo, Hub and BRS Weight
@@ -348,7 +348,7 @@ def empty(config,
                                  output.fuselage + output.landing_gear +output.total_wing_weight)*Units.kg
 
     output.empty      = (contingency_factor * (output.structural + output.seats + output.avionics +
-                          output.motors + output.servos + output.wiring + output.BRS) + output.battery) *Units.kg
+                          output.motors + output.servos + output.wiring + output.BRS + output.ESC ) + output.battery) *Units.kg
 
     output.total      = output.empty + output.payload + output.passengers
                                                    
