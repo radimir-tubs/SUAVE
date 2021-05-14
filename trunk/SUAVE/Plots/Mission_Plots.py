@@ -1382,6 +1382,7 @@ def plot_noise_level(results, line_color = 'bo-', save_figure = False, save_file
     fig          = plt.figure(save_filename)
     fig.set_size_inches(10, 8) 
     axes1        = fig.add_subplot(1,1,1)
+    axes2        = axes1.twinx()
     
     # loop through control points
     for i in range(dim_seg):    
@@ -1394,7 +1395,7 @@ def plot_noise_level(results, line_color = 'bo-', save_figure = False, save_file
                 axes1.plot(time, SPL[:,center_line,j], color = colors[j], label= r'$\phi$ = ' + str(round(angles[j],1)) + r' $\degree$' ) 
             else:
                 axes1.plot(time, SPL[:,center_line,j], color = colors[j]) 
-        axes2 = axes1.twinx()
+        
         axes2.plot(time, alt, 'k-')   
         
     axes2.set_ylim(0, 3000)   
