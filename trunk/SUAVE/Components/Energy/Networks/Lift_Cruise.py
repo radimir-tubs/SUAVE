@@ -323,7 +323,7 @@ class Lift_Cruise(Propulsor):
         conditions.propulsion.rotor_tip_mach                    = (rotor_motor.outputs.omega * R_lift )/a
         conditions.propulsion.rotor_efficiency                  = etap_lift
         conditions.propulsion.rotor_power                       = P_lift*num_lift
-        conditions.propulsion.rotor_thrust                      = F_lift*num_lift        
+        conditions.propulsion.rotor_thrust                      = F_lift_mag
         conditions.propulsion.rotor_power_coefficient           = Cp_lift        
         conditions.propulsion.rotor_thrust_coefficient          = outputs_lift.thrust_coefficient  
         conditions.propulsion.rotor_power_draw                  = -i_lift * volts   
@@ -335,6 +335,7 @@ class Lift_Cruise(Propulsor):
         conditions.propulsion.propeller_power_draw              = -i_forward * volts         
         conditions.propulsion.propeller_power_forward           = P_forward*num_forward 
         conditions.propulsion.propeller_rpm                     = propeller_rpm 
+        conditions.propulsion.propeller_thrust                  = F_forward_mag
         conditions.propulsion.propeller_motor_efficiency        = etam_forward
         conditions.propulsion.propeller_motor_torque            = propeller_motor.outputs.torque        
         conditions.propulsion.propeller_thrust_coefficient      = Cp_forward 

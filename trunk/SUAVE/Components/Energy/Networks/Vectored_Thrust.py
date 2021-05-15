@@ -194,8 +194,12 @@ class Vectored_Thrust(Propulsor):
         voltage_open_circuit = battery.voltage_open_circuit
         voltage_under_load   = battery.voltage_under_load    
         state_of_charge      = battery.state_of_charge
-        
+         
+        # Compute force vector       
+        F_vec = self.number_of_engines * F * [np.cos(self.thrust_angle),0,-np.sin(self.thrust_angle)]  
+        F_mag = np.atleast_2d(np.linalg.norm(F_vec, axis=1))  
           
+        conditions.propulsion.propeller_thrust                = F_mag  
         conditions.propulsion.propeller_rpm                   = rpm
         conditions.propulsion.battery_draw                    = battery_draw
         conditions.propulsion.battery_energy                  = battery_energy 
@@ -218,13 +222,7 @@ class Vectored_Thrust(Propulsor):
         
         # noise      
         outputs.number_of_engines                             = num_engines
-        conditions.noise.sources.rotor                        = outputs
-
-        # Compute force vector       
-        F_vec = self.number_of_engines * F * [np.cos(self.thrust_angle),0,-np.sin(self.thrust_angle)]   
-        
-        F_mag = np.atleast_2d(np.linalg.norm(F_vec, axis=1)) 
-  
+        conditions.noise.sources.rotor                        = outputs 
         conditions.propulsion.disc_loading                    = (F_mag.T)/(num_engines*np.pi*(R)**2) # N/m^2  
         conditions.propulsion.power_loading                   = (F_mag.T)/(P)    # N/W         
         
