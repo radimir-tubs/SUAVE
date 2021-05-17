@@ -259,42 +259,7 @@ class Rotor(Energy_Component):
             Gamma        = vt*(4.*pi*r/B)*F*(1.+(4.*lamdaw*R/(pi*B*r))*(4.*lamdaw*R/(pi*B*r)))**0.5 
             Re           = (W*c)/nu  
             
-            # If rotor airfoils are defined, using airfoil surrogate 
-            if a_loc != None:
-                # Compute blade Cl and Cd distribution from the airfoil data  
-                Cl      = np.zeros((ctrl_pts,Nr))              
-                Cdval   = np.zeros((ctrl_pts,Nr))  
-                dim_sur = len(cl_sur)
-                for jj in range(dim_sur):                 
-                    Cl_af         = cl_sur[a_geo[jj]](Re,alpha,grid=False)  
-                    Cdval_af      = cd_sur[a_geo[jj]](Re,alpha,grid=False)  
-                    locs          = np.where(np.array(a_loc) == jj )
-                    Cl[:,locs]    = Cl_af[:,locs]
-                    Cdval[:,locs] = Cdval_af[:,locs]        
-                     
-            else:
-                # Estimate Cl max 
-                Cl_max_ref = -0.0009*tc**3 + 0.0217*tc**2 - 0.0442*tc + 0.7005
-                Re_ref     = 9.*10**6      
-                Cl1maxp    = Cl_max_ref * ( Re / Re_ref ) **0.1
-                
-                # If not airfoil polar provided, use 2*pi as lift curve slope
-                Cl = 2.*pi*alpha
-            
-                # By 90 deg, it's totally stalled.
-                Cl[Cl>Cl1maxp]  = Cl1maxp[Cl>Cl1maxp] # This line of code is what changed the regression testing
-                Cl[alpha>=pi/2] = 0.
-                
-                # Scale for Mach, this is Karmen_Tsien
-                Cl[Ma[:,:]<1.] = Cl[Ma[:,:]<1.]/((1-Ma[Ma[:,:]<1.]*Ma[Ma[:,:]<1.])**0.5+((Ma[Ma[:,:]<1.]*Ma[Ma[:,:]<1.])/(1+(1-Ma[Ma[:,:]<1.]*Ma[Ma[:,:]<1.])**0.5))*Cl[Ma<1.]/2)
-                
-                # If the blade segments are supersonic, don't scale
-                Cl[Ma[:,:]>=1.] = Cl[Ma[:,:]>=1.]  
-                
-                #This is an atrocious fit of DAE51 data at RE=50k for Cd
-                Cdval = (0.108*(Cl*Cl*Cl*Cl)-0.2612*(Cl*Cl*Cl)+0.181*(Cl*Cl)-0.0139*Cl+0.0278)*((50000./Re)**0.2)
-                Cdval[alpha>=pi/2] = 2.                
-
+            Cl, Cdval   = compute_aerodynamic_forces(a_loc, a_geo, cl_sur, cd_sur, ctrl_pts, Nr, Na, Re, Ma, alpha, tc)
             Rsquiggly   = Gamma - 0.5*W*c*Cl
         
             # An analytical derivative for dR_dpsi, this is derived by taking a derivative of the above equations
@@ -385,7 +350,7 @@ class Rotor(Energy_Component):
         Cp[Cp<0]                                           = 0.  
         thrust[conditions.propulsion.throttle[:,0] <=0.0]  = 0.0
         power[conditions.propulsion.throttle[:,0]  <=0.0]  = 0.0 
-        torque[conditions.propulsion.throttle[:,0]  <=0.0] = 0.0
+        torque[conditions.propulsion.throttle[:,0] <=0.0]  = 0.0
         thrust[omega<0.0]                                  = - thrust[omega<0.0]  
         thrust[omega==0.0]                                 = 0.0
         power[omega==0.0]                                  = 0.0
@@ -436,3 +401,90 @@ class Rotor(Energy_Component):
             ) 
     
         return thrust, torque, power, Cp, outputs , etap
+
+
+def compute_aerodynamic_forces(a_loc, a_geo, cl_sur, cd_sur, ctrl_pts, Nr, Na, Re, Ma, alpha, tc):
+    """
+    Cl, Cdval = compute_aerodynamic_forces(  a_loc, 
+                                             a_geo, 
+                                             cl_sur, 
+                                             cd_sur, 
+                                             ctrl_pts, 
+                                             Nr, 
+                                             Na, 
+                                             Re, 
+                                             Ma, 
+                                             alpha, 
+                                             tc, 
+                                             nonuniform_freestream )
+                                             
+    Computes the aerodynamic forces at sectional blade locations. If airfoil 
+    geometry and locations are specified, the forces are computed using the 
+    airfoil polar lift and drag surrogates, accounting for the local Reynolds 
+    number and local angle of attack. 
+    
+    If the airfoils are not specified, an approximation is used.
+
+    Assumptions:
+    N/A
+
+    Source:
+    N/A
+
+    Inputs:
+    a_loc                      Locations of specified airfoils                 [-]
+    a_geo                      Geometry of specified airfoil                   [-]
+    cl_sur                     Lift Coefficient Surrogates                     [-]
+    cd_sur                     Drag Coefficient Surrogates                     [-]
+    ctrl_pts                   Number of control points                        [-]
+    Nr                         Number of radial blade sections                 [-]
+    Na                         Number of azimuthal blade stations              [-]
+    Re                         Local Reynolds numbers                          [-]
+    Ma                         Local Mach number                               [-]
+    alpha                      Local angles of attack                          [radians]
+    tc                         Thickness to chord                              [-]
+                                                   
+                                                     
+    Outputs:                                          
+    Cl                       Lift Coefficients                         [-]                               
+    Cdval                    Drag Coefficients  (before scaling)       [-]
+    """        
+    # If propeller airfoils are defined, use airfoil surrogate 
+    if a_loc != None:
+        # Compute blade Cl and Cd distribution from the airfoil data  
+        dim_sur = len(cl_sur)   
+        
+        # return the 1D Cl and CDval of shape (ctrl_pts, Nr)
+        Cl      = np.zeros((ctrl_pts,Nr))              
+        Cdval   = np.zeros((ctrl_pts,Nr))  
+        
+        for jj in range(dim_sur):                 
+            Cl_af         = cl_sur[a_geo[jj]](Re,alpha,grid=False)  
+            Cdval_af      = cd_sur[a_geo[jj]](Re,alpha,grid=False)  
+            locs          = np.where(np.array(a_loc) == jj )
+            Cl[:,locs]    = Cl_af[:,locs]
+            Cdval[:,locs] = Cdval_af[:,locs]                   
+    else:
+        # Estimate Cl max 
+        Cl_max_ref = -0.0009*tc**3 + 0.0217*tc**2 - 0.0442*tc + 0.7005
+        Re_ref     = 9.*10**6      
+        Cl1maxp    = Cl_max_ref * ( Re / Re_ref ) **0.1
+        
+        # If not airfoil polar provided, use 2*pi as lift curve slope
+        Cl = 2.*np.pi*alpha
+    
+        # By 90 deg, it's totally stalled.
+        Cl[Cl>Cl1maxp]  = Cl1maxp[Cl>Cl1maxp] # This line of code is what changed the regression testing
+        Cl[alpha>=np.pi/2] = 0.
+        
+        # Scale for Mach, this is Karmen_Tsien
+        Cl[Ma[:,:]<1.] = Cl[Ma[:,:]<1.]/((1-Ma[Ma[:,:]<1.]*Ma[Ma[:,:]<1.])**0.5+((Ma[Ma[:,:]<1.]*Ma[Ma[:,:]<1.])/(1+(1-Ma[Ma[:,:]<1.]*Ma[Ma[:,:]<1.])**0.5))*Cl[Ma<1.]/2)
+        
+        # If the blade segments are supersonic, don't scale
+        Cl[Ma[:,:]>=1.] = Cl[Ma[:,:]>=1.]  
+        
+        #This is an atrocious fit of DAE51 data at RE=50k for Cd
+        Cdval = (0.108*(Cl*Cl*Cl*Cl)-0.2612*(Cl*Cl*Cl)+0.181*(Cl*Cl)-0.0139*Cl+0.0278)*((50000./Re)**0.2)
+        Cdval[alpha>=np.pi/2] = 2.    
+        
+    return Cl, Cdval

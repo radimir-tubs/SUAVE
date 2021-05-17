@@ -215,7 +215,7 @@ class Propeller(Energy_Component):
         psi_2d         = np.tile(np.atleast_2d(psi).T,(1,Nr))
         psi_2d         = np.repeat(psi_2d[np.newaxis, :, :], ctrl_pts, axis=0)    
         
-        # 2D radial distribution non dimensionalized
+        # 2D radial distribution, non dimensionalized
         chi_2d         = np.tile(chi ,(Na,1))            
         chi_2d         = np.repeat(chi_2d[ np.newaxis,:, :], ctrl_pts, axis=0) 
         r_dim_2d       = np.tile(r ,(Na,1))  
@@ -383,7 +383,7 @@ class Propeller(Energy_Component):
         
         epsilon                  = Cd/Cl
         epsilon[epsilon==np.inf] = 10. 
-        deltar   = (r[1]-r[0]) 
+        deltar                   = (r[1]-r[0]) 
         blade_T_distribution     = rho*(Gamma*(Wt-epsilon*Wa))*deltar 
         blade_Q_distribution     = rho*(Gamma*(Wa+epsilon*Wt)*r)*deltar 
         
