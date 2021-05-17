@@ -202,18 +202,13 @@ class Propeller(Energy_Component):
         # set up non dimensional radial distribution  
         chi      = self.radius_distribution/R
             
-        V        = V_thrust[:,0,None] 
         omega    = np.abs(omega)        
         r        = chi*R            # Radial coordinate 
         omegar   = np.outer(omega,r)
         pi       = np.pi            
         pi2      = pi*pi        
         n        = omega/(2.*pi)    # Cycles per second  
-        nu       = mu/rho  
-        
-        deltar   = (r[1]-r[0])  
-        deltachi = (chi[1]-chi[0])          
-        rho_0    = rho
+        nu       = mu/rho
         
         # azimuth distribution 
         psi            = np.linspace(0,2*pi,Na+1)[:-1]
@@ -388,7 +383,7 @@ class Propeller(Energy_Component):
         
         epsilon                  = Cd/Cl
         epsilon[epsilon==np.inf] = 10. 
-
+        deltar   = (r[1]-r[0]) 
         blade_T_distribution     = rho*(Gamma*(Wt-epsilon*Wa))*deltar 
         blade_Q_distribution     = rho*(Gamma*(Wa+epsilon*Wt)*r)*deltar 
         
@@ -436,9 +431,9 @@ class Propeller(Energy_Component):
         
         # calculate coefficients 
         D        = 2*R 
-        Cq       = torque/(rho_0*(n*n)*(D*D*D*D*D)) 
-        Ct       = thrust/(rho_0*(n*n)*(D*D*D*D))
-        Cp       = power/(rho_0*(n*n*n)*(D*D*D*D*D))
+        Cq       = torque/(rho*(n*n)*(D*D*D*D*D)) 
+        Ct       = thrust/(rho*(n*n)*(D*D*D*D))
+        Cp       = power/(rho*(n*n*n)*(D*D*D*D*D))
         etap     = V*thrust/power 
 
         # prevent things from breaking 

@@ -7,6 +7,7 @@
 #           Mar 2020, M. Clarke
 #           Sep 2020, M. Clarke 
 #           Apr 2021, M. Clarke
+#           May 2021, R. Erhard
 
 # ----------------------------------------------------------------------
 #  Imports
@@ -74,6 +75,7 @@ class Rotor(Energy_Component):
         self.number_azimuthal_stations = 24
         self.induced_power_factor      = 1.48  #accounts for interference effects
         self.profile_drag_coefficient  = .03        
+        self.nonuniform_freestream     = False
 
 
     def spin(self,conditions):
@@ -173,6 +175,9 @@ class Rotor(Energy_Component):
         BB      = B*B    
         BBB     = BB*B
     
+        nonuniform_freestream = self.nonuniform_freestream
+        rotation              = self.rotation
+        
         # calculate total blade pitch
         total_blade_pitch = beta_0 + pitch_c
     
@@ -210,10 +215,9 @@ class Rotor(Energy_Component):
         psi_2d         = np.repeat(psi_2d[np.newaxis, :, :], ctrl_pts, axis=0)   
         azimuth_2d     = np.repeat(np.atleast_2d(psi).T[np.newaxis,: ,:], Na, axis=0).T  
         
-        # 2 dimensiona radial distribution non dimensionalized
+        # 2 dimensional radial distribution, non dimensionalized
         chi_2d         = np.tile(chi ,(Na,1))            
         chi_2d         = np.repeat(chi_2d[ np.newaxis,:, :], ctrl_pts, axis=0) 
-                       
         r_dim_2d       = np.tile(r ,(Na,1))  
         r_dim_2d       = np.repeat(r_dim_2d[ np.newaxis,:, :], ctrl_pts, axis=0)  
     
@@ -344,8 +348,7 @@ class Rotor(Energy_Component):
         
         epsilon                  = Cd/Cl
         epsilon[epsilon==np.inf] = 10. 
-        deltar                   = (r[1]-r[0])   
-        deltachi                 = (chi[1]-chi[0])          
+        deltar                   = (r[1]-r[0])           
         blade_T_distribution     = rho*(Gamma*(Wt-epsilon*Wa))*deltar 
         blade_Q_distribution     = rho*(Gamma*(Wa+epsilon*Wt)*r)*deltar 
         thrust                   = rho*B*(np.sum(Gamma*(Wt-epsilon*Wa)*deltar,axis=1)[:,None])
