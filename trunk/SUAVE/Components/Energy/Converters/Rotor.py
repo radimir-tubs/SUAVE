@@ -21,10 +21,10 @@ from SUAVE.Methods.Geometry.Three_Dimensional \
 import numpy as np
 
 # ----------------------------------------------------------------------
-#  Propeller Class
+#  Rotor Class
 # ----------------------------------------------------------------------    
 ## @ingroup Components-Energy-Converters
-class Propeller(Energy_Component):
+class Rotor(Energy_Component):
     """This is a propeller component.
     
     Assumptions:
