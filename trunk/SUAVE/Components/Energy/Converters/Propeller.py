@@ -383,6 +383,7 @@ class Propeller(Energy_Component):
         
         epsilon                  = Cd/Cl
         epsilon[epsilon==np.inf] = 10. 
+        epsilon[epsilon==np.nan] = 10.
         deltar                   = (r[1]-r[0]) 
         blade_T_distribution     = rho*(Gamma*(Wt-epsilon*Wa))*deltar 
         blade_Q_distribution     = rho*(Gamma*(Wa+epsilon*Wt)*r)*deltar 
