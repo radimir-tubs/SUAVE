@@ -475,7 +475,7 @@ def plot_flight_conditions(results, line_color = 'bo-', save_figure = False, sav
         airspeed = segment.conditions.freestream.velocity[:,0] /   Units['mph']  
         theta    = segment.conditions.frames.body.inertial_rotations[:,1,None] / Units.deg
         
-        x        = segment.conditions.frames.inertial.position_vector[:,0]/ Units.mile
+        x        = segment.conditions.frames.inertial.position_vector[:,0]/ Units.nmi
         y        = segment.conditions.frames.inertial.position_vector[:,1]
         z        = segment.conditions.frames.inertial.position_vector[:,2]
         altitude = segment.conditions.freestream.altitude[:,0]/Units.feet
@@ -498,7 +498,7 @@ def plot_flight_conditions(results, line_color = 'bo-', save_figure = False, sav
         
         axes = fig.add_subplot(2,2,4)
         axes.plot( time , x, 'bo-')
-        axes.set_ylabel('Range (miles)',axis_font)
+        axes.set_ylabel('Range (nautical miles)',axis_font)
         axes.set_xlabel('Time (min)',axis_font)
         set_axes(axes)         
         
