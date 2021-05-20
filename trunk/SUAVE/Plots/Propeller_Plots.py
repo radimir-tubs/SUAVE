@@ -1,7 +1,7 @@
 ## @ingroup Plots
 # Propeller_Plots.py
 #
-# Created: Mar 2021, R. Erhard 
+# Created: Mar 2021, R. Erhard
 
 # ----------------------------------------------------------------------
 #  Imports
