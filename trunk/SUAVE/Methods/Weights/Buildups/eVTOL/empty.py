@@ -143,7 +143,7 @@ def empty(config,
     output.passengers   = config.passengers * 70.   * Units.kg
     output.avionics     = 15.                       * Units.kg
     output.landing_gear = MTOW * 0.02               * Units.kg
-    output.ESC          = config.passengers * 7.    * Units.kg 
+    output.ESC          = config.passengers * 5.    * Units.kg 
 
 
     # Select a length scale depending on what kind of vehicle this is
