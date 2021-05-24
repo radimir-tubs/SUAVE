@@ -25,13 +25,12 @@ from SUAVE.Methods.Geometry.Two_Dimensional.Cross_Section.Airfoil.compute_airfoi
 
 def rotor_design(prop, number_of_stations = 20,
                  design_taper             = 0.3,
-                 pivot_points             = [0.33,0.66],
-                 #pivot_points             = [0.25,0.5,0.75],
+                 pivot_points             = [0.25,0.5,0.75],
                  linear_interp_flag       = True,
                  #solver                  = 'SLSQP',
                  solver                   = 'differential_evolution',
                  CL_max                   = 1.1,
-                 design_FM                = 0.76,
+                 design_FM                = 0.75,
                  print_iter               = True):
     
     """ Optimizes propeller chord and twist given input parameters.
@@ -146,7 +145,8 @@ def rotor_design(prop, number_of_stations = 20,
                     {'type':'ineq', 'fun': constraint_blade_taper    ,'args': args},
                     {'type':'ineq', 'fun': constraint_monotonic_chord,'args': args},
                     {'type':'ineq', 'fun': constraint_monotonic_twist,'args': args},
-                    #{'type':'ineq', 'fun': constraint_blade_solidity,'args': args} 
+                    #{'type':'ineq', 'fun': constraint_blade_solidity, 'args': args},
+                    {'type':'ineq', 'fun': constraint_max_cl         ,'args': args}, 
                     ] 
             
             opts= {'eps':1e-2,'maxiter': 500, 'disp': print_iter, 'ftol': 1e-4} 
@@ -415,7 +415,7 @@ def create_diff_evo_cons(B, R,chi,Rh,a_geo ,a_loc,cl_sur,cd_sur, rho,mu,nu,a,T,V
     constraints.append(NonlinearConstraint(fun4, 0 ,np.inf))
     #constraints.append(NonlinearConstraint(fun5, 0 ,np.inf)) 
     #constraints.append(NonlinearConstraint(fun6, 0 ,np.inf)) 
-    #constraints.append(NonlinearConstraint(fun7, 0 ,np.inf)) 
+    constraints.append(NonlinearConstraint(fun7, 0 ,np.inf)) 
     
     return tuple(constraints)     
 
@@ -891,7 +891,7 @@ def constraint_max_cl(x,B, R,chi,Rh,a_geo ,a_loc,cl_sur,cd_sur, rho,mu,nu,a,T,V,
 
     # Cl constraint 
     cl_diff = CL_max - Cl
-    CL_constraint = sum(cl_diff(cl_diff<0))  
+    CL_constraint = sum(cl_diff[cl_diff<0])*10  
     return CL_constraint
 
 
@@ -1073,15 +1073,16 @@ def constraint_figure_of_merit(x,B, R,chi,Rh,a_geo ,a_loc,cl_sur,cd_sur, rho,mu,
     torque                  = np.atleast_2d((B * np.sum(blade_Q_distribution, axis = 1))).T         
     power                   = omega*torque   
 
-    # calculate coefficients 
+    # calculate coefficients with UIUC definition 
     D        = 2*R 
     Cq       = torque/(rho_0*(n*n)*(D*D*D*D*D)) 
     Ct       = thrust/(rho_0*(n*n)*(D*D*D*D))
     Cp       = power/(rho_0*(n*n*n)*(D*D*D*D*D))
     etap     = V*thrust/power  
      
-    FM_constraint    = 0 # place function 
-    design_FM       = 0.76
+    Area   = np.pi*(R**2)
+    FM  = (thrust*np.sqrt(thrust/2*rho*Area))/power
+    FM_constraint    = (FM[0][0] - design_FM)*10
     
     return FM_constraint
 
