@@ -22,32 +22,24 @@ import copy as cp
 
 ## @ingroup Methods-Weights-Buildups-Common
 def prop(prop,
-         maximum_thrust,
-         chord_to_radius_ratio = 0.1,
-         thickness_to_chord = 0.12,
+         maximum_thrust,  
          root_to_radius_ratio = 0.1,
          moment_to_lift_ratio = 0.02,
          spanwise_analysis_points = 5,
          safety_factor = 1.5,
          margin_factor = 1.2,
          forward_web_locations = [0.25, 0.35],
-         shear_center = 0.25,
-         speed_of_sound = 340.294,
-         tip_max_mach_number = 0.65):
+         shear_center = 0.25):
     """weight = SUAVE.Methods.Weights.Buildups.Common.prop(
             prop,
-            maximum_thrust,
-            chord_to_radius_ratio = 0.1,
-            thickness_to_chord = 0.12,
+            maximum_thrust,  
             root_to_radius_ratio = 0.1,
             moment_to_lift_ratio = 0.02,
             spanwise_analysis_points = 5,
             safety_factor = 1.5,
             margin_factor = 1.2,
             forward_web_locationss = [0.25, 0.35],
-            shear_center = 0.25,
-            speed_of_sound = 340.294,
-            tip_max_mach_number = 0.65)
+            shear_center = 0.25)
 
         Assumptions:
         Calculates propeller blade pass for an eVTOL vehicle based on assumption
@@ -73,18 +65,13 @@ def prop(prop,
         Inputs:
 
             prop                        SUAVE Propeller Data Structure
-            maximum_thrust              Maximum Design Thrust               [N]
-            chord_to_radius_ratio       Chord to Blade Radius               [Unitless]
-            thickness_to_chord          Blade Thickness to Chord            [Unitless]
-            root_to_radius_ratio        Root Structure to Blade Radius      [Unitless]
+            maximum_thrust              Maximum Design Thrust               [N]  
             moment_to_lift_ratio        Coeff. of Moment to Coeff. of Lift  [Unitless]
             spanwise_analysis_points    Analysis Points for Sizing          [Unitless]
             safety_factor               Design Safety Factor                [Unitless]
             margin_factor               Allowable Extra Mass Fraction       [Unitless]
             forward_web_locationss      Location of Forward Spar Webbing    [m]
-            shear_center                Location of Shear Center            [m]
-            speed_of_sound              Local Speed of Sound                [m/s]
-            tip_max_mach_number         Allowable Tip Mach Number           [Unitless]
+            shear_center                Location of Shear Center            [m] 
 
         Outputs:
 
@@ -101,16 +88,14 @@ def prop(prop,
     rProp       = prop.tip_radius
     maxThrust   = maximum_thrust
     nBlades     = prop.number_of_blades
-    chord       = rProp * chord_to_radius_ratio
+    chord       = rProp * np.mean(prop.chord_distribution/prop.tip_radius)
     N           = spanwise_analysis_points
     SF          = safety_factor
-    toc         = thickness_to_chord
+    toc         = np.mean(prop.thickness_to_chord)
     fwdWeb      = cp.deepcopy(forward_web_locations)
     xShear      = shear_center
     rootLength  = rProp * root_to_radius_ratio
-    grace       = margin_factor
-    sound       = speed_of_sound
-    tipMach     = tip_max_mach_number
+    grace       = margin_factor 
     cmocl       = moment_to_lift_ratio
     
 #-------------------------------------------------------------------------------
@@ -206,7 +191,7 @@ def prop(prop,
 # Loads
 #-------------------------------------------------------------------------------
 
-    omega = sound*tipMach/rProp                   # Propeller Angular Velocity
+    omega = prop.angular_velocity                 # Propeller Angular Velocity
     F = SF*3*(maxThrust/rProp**3)*(x**2)/nBlades  # Force Distribution
     Q = F * chord * cmocl                         # Torsion Distribution
 

@@ -268,6 +268,9 @@ def propeller_design(prop,number_of_stations=20):
     elif prop.design_thrust == None: 
         prop.design_thrust = Thrust[0]       
     
+    if prop.design_tip_mach == None:
+        prop.design_tip_mach = (R*omega)/speed_of_sound 
+      
     # blade solidity
     r          = chi*R                    # Radial coordinate   
     blade_area = sp.integrate.cumtrapz(B*c, r-r[0])
