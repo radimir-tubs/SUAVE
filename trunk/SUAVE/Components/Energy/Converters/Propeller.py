@@ -200,17 +200,14 @@ class Propeller(Energy_Component):
         ctrl_pts = len(Vv)
         
         # set up non dimensional radial distribution  
-        chi      = self.radius_distribution/R
-            
-        V        = V_thrust[:,0,None] 
+        chi      = self.radius_distribution/R 
         omega    = np.abs(omega)        
         r        = chi*R            # Radial coordinate 
         omegar   = np.outer(omega,r)
         pi       = np.pi            
         pi2      = pi*pi        
         n        = omega/(2.*pi)    # Cycles per second  
-        nu       = mu/rho  
-        
+        nu       = mu/rho   
         deltar   = (r[1]-r[0])  
         deltachi = (chi[1]-chi[0])          
         rho_0    = rho
