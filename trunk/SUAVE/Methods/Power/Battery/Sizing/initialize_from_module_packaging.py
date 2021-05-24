@@ -47,7 +47,7 @@ def initialize_from_module_packaging(battery):
        mass_properties.
         mass              [kilograms] 
     """   
-    module_weight_factor         = 1.42
+    module_weight_factor         = 1.2 # 1.42
     
     amp_hour_rating              = battery.cell.nominal_capacity  # 
     nominal_voltage              = battery.cell.nominal_voltage       

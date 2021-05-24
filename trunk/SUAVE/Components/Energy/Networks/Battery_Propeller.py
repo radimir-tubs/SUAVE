@@ -66,6 +66,7 @@ class Battery_Propeller(Propulsor):
         self.engine_length             = None
         self.number_of_engines         = None
         self.voltage                   = None
+        self.areas                     = Data()
         self.thrust_angle              = 0.0
         self.pitch_command             = 0.0
         self.nacelle_start             = 0.2

@@ -54,8 +54,7 @@ def plot_vehicle(vehicle, save_figure = False, plot_wing_surface = True, plot_co
     fig = plt.figure(save_filename) 
     fig.set_size_inches(8,8) 
     axes = Axes3D(fig)    
-    #axes.view_init(elev= 40, azim= 250) 
-    axes.view_init(elev= 0, azim= 180) 
+    axes.view_init(elev= 40, azim= 250)  
     
     # -------------------------------------------------------------------------
     # PLOT WING
@@ -415,12 +414,12 @@ def plot_propeller_geometry(axes,prop,propulsor,propulsor_name):
             
             # ROTATION MATRICES FOR INNER SECTION     
             # rotation about y axis to create twist and position blade upright  
-            trans_1 = np.zeros((dim,3,3))
-            trans_1[:,0,0] = np.cos(rot*flip_1 - rot*beta)           
-            trans_1[:,0,2] = -np.sin(rot*flip_1 - rot*beta)                 
+            trans_1 = np.zeros((dim,3,3)) 
+            trans_1[:,0,0] = np.cos(flip_1 - beta)           
+            trans_1[:,0,2] = -np.sin(flip_1 - beta)                 
             trans_1[:,1,1] = 1
-            trans_1[:,2,0] = np.sin(rot*flip_1 - rot*beta) 
-            trans_1[:,2,2] = np.cos(rot*flip_1 - rot*beta) 
+            trans_1[:,2,0] = np.sin(flip_1 - beta) 
+            trans_1[:,2,2] = np.cos(flip_1 - beta)            
     
             # rotation about x axis to create azimuth locations 
             trans_2 = np.array([[1 , 0 , 0],
