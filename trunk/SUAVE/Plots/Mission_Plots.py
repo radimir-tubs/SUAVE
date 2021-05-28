@@ -1152,26 +1152,29 @@ def plot_lift_distribution(results,vehicle, save_figure = False, save_filename =
     
     axis_font  = {'size':'12'}  	
     img_idx    = 1
-    seg_idx    = 1
+
     for segment in results.segments.values():   	
         num_ctrl_pts = len(segment.conditions.frames.inertial.time)	
         for ti in range(num_ctrl_pts):  
-            cl_y = segment.conditions.aerodynamics.lift_breakdown.inviscid_wings_sectional[ti] 
-            line = ['-b','-b','-r','-r','-k']
-            fig  = plt.figure()
-            fig.set_size_inches(8,8)       
-            axes = plt.subplot(1,1,1)
-            for i in range(n_w): 
-                y_pts = VD.Y_SW[i*(n_sw):(i+1)*(n_sw)]
-                z_pts = cl_y[i*(n_sw):(i+1)*(n_sw)]
-                axes.plot(y_pts, z_pts, line[i] ) 
-            axes.set_xlabel("Spanwise Location (m)",axis_font)
-            axes.set_title('$C_{Ly}$',axis_font)  
-            
-            if save_figure: 
-                plt.savefig( save_filename + '_' + str(img_idx) + file_type) 	
-            img_idx += 1
-        seg_idx +=1
+            try: 
+                cl_y = segment.conditions.aerodynamics.lift_breakdown.inviscid_wings_sectional[ti] 
+                line = ['-b','-b','-r','-r','-k']
+                fig  = plt.figure()
+                fig.set_size_inches(8,8)       
+                axes = plt.subplot(1,1,1)
+                for i in range(n_w): 
+                    y_pts = VD.Y_SW[i*(n_sw):(i+1)*(n_sw)]
+                    z_pts = cl_y[i*(n_sw):(i+1)*(n_sw)]
+                    axes.plot(y_pts, z_pts, line[i] ) 
+                axes.set_xlabel("Spanwise Location (m)",axis_font)
+                axes.set_title('$C_{Ly}$' + '_' + segment.tag + '_' + str(img_idx),axis_font)  
+                
+                if save_figure: 
+                    plt.savefig( save_filename + '_' + segment.tag + '_' + str(img_idx) + file_type) 	
+                img_idx += 1
+            except:
+                pass
+       
         
     return      
  
