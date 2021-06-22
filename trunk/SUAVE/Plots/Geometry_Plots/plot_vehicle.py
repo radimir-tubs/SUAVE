@@ -1222,7 +1222,7 @@ def generate_wing_points(vehicle,settings):
     return VD 
 
     
-def generate_fuselage_points(axes, fus ,tessellation = 24 ):
+def generate_fuselage_points(fus ,tessellation = 24 ):
     """ This generates the coordinate points on the surface of the fuselage 
 
     Assumptions: 
