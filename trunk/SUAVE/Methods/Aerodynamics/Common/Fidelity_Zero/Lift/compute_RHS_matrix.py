@@ -68,7 +68,7 @@ def compute_RHS_matrix(n_sw,n_cw,delta,phi,conditions,geometry,propeller_wake_mo
 
                     # compute the induced velocity
                     prop_V_wake_ind = compute_wake_induced_velocity(wake_distribution,VD,num_ctrl_pts)
-
+                     
                 if 'rotor' in propulsor.keys():
 
                     # extract the propeller data structure
@@ -80,7 +80,7 @@ def compute_RHS_matrix(n_sw,n_cw,delta,phi,conditions,geometry,propeller_wake_mo
                                                                                                                             number_of_wake_timesteps)
 
                     # compute the induced velocity
-                    rot_V_wake_ind = compute_wake_induced_velocity(wake_distribution,VD,num_ctrl_pts)
+                    rot_V_wake_ind = compute_wake_induced_velocity(wake_distribution,VD,num_ctrl_pts) 
 
 
                 # update the total induced velocity distribution

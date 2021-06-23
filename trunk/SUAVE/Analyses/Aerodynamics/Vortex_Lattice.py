@@ -651,7 +651,7 @@ def calculate_VLM(conditions,settings,geometry):
     wing_lifts = Data()
     wing_drags = Data() 
         
-    total_lift_coeff, total_induced_drag_coeff, _, CL_wing, CDi_wing, cl_y, cdi_y, alpha_i, CPi, _ \
+    total_lift_coeff, total_induced_drag_coeff, _, CL_wing, CDi_wing, cl_y, cdi_y, alpha_i, CPi, _,_,_,_ \
         = VLM(conditions,settings,geometry)
     
     # Dimensionalize the lift and drag for each wing
