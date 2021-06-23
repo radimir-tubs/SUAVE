@@ -47,13 +47,18 @@ def plot_vehicle(vehicle, save_figure = False, plot_wing_surface = True, plot_co
     settings.number_chordwise_vortices = 5
     settings.spanwise_cosine_spacing   = False 
     settings.model_fuselage            = False
-    VD = generate_wing_points(vehicle,settings)  
+    
+    if not 'vortex_distribution' in vehicle:
+        VD = generate_wing_points(vehicle,settings)  
+    else:
+        plot_wing_surface = False 
+        VD = vehicle.vortex_distribution
         
     # initalize figure 
     fig = plt.figure(save_filename) 
     fig.set_size_inches(8,8) 
     axes = Axes3D(fig)    
-    axes.view_init(elev= 40, azim= 250)  
+    axes.view_init(elev= 40, azim= 210)  
     
     # -------------------------------------------------------------------------
     # PLOT WING
@@ -97,7 +102,7 @@ def plot_vehicle(vehicle, save_figure = False, plot_wing_surface = True, plot_co
       
     # Plot Vehicle
     plt.axis('off') 
-    plt.grid(None)      
+    plt.grid(True)      
     return 
 
 def plot_wings(axes,VD,plot_wing_surface,face_color,edge_color,alpha_val): 
@@ -286,12 +291,13 @@ def plot_propulsor(axes,VD,propulsor,propulsor_face_color,propulsor_edge_color,p
                 
                 # Generate And Plot Propeller/Rotor Geometry
                 plot_propeller_geometry(axes,component,propulsor,energy_component)
-            
+               
+              
                 # Generate Nacelle Geoemtry
-                nac_geo = generate_nacelle_points(VD,component,propulsor,energy_component,tessellation)
+                #nac_geo = generate_nacelle_points(VD,component,propulsor,energy_component,tessellation)
                 
                 # Plot Nacelle Geometry
-                plot_nacelle_geometry(axes,nac_geo,propulsor_face_color,propulsor_edge_color,propulsor_alpha) 
+                #plot_nacelle_geometry(axes,nac_geo,propulsor_face_color,propulsor_edge_color,propulsor_alpha) 
             
             elif energy_component == 'turbofan':
             

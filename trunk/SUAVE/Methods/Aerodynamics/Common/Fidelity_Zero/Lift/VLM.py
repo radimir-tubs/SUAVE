@@ -224,7 +224,7 @@ def VLM(conditions,settings,geometry):
     # SINF REFERENCES THE LOAD CONTRIBUTION OF IRT-VORTEX TO THE
     # STRIP NOMINAL AREA, I.E., AREA OF STRIP ASSUMING CONSTANT
     # (CHORDWISE) HORSESHOE SPAN.    
-    SINF = ADC * DCP # The horshoe span lengths have been removed
+    SINF = ADC * DCP # The horseshoe span lengths have been removed
 
     # Split into chordwise strengths and sum into strips
     CNC = np.array(np.split(np.reshape(SINF,(-1,n_cw)).sum(axis=1),len(mach)))
@@ -332,4 +332,4 @@ def VLM(conditions,settings,geometry):
     
     alpha_i = np.arctan(Cdi_y/Cl_y) 
     
-    return CL, CDi, CM, CL_wing, CDi_wing, cl_y, cdi_y, alpha_i, CP, gamma
+    return CL, CDi, CM, CL_wing, CDi_wing, cl_y, cdi_y, alpha_i, CP, gamma,Vx_ind_total , Vz_ind_total , V_distribution
