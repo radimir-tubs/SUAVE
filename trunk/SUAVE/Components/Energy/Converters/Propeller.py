@@ -373,7 +373,7 @@ class Propeller(Energy_Component):
             
             # If its really not going to converge
             if np.any(PSI>pi/2) and np.any(dpsi>0.0):
-                print("Propeller BEMT did not converge to a solution (Stall)")
+                #print("Propeller BEMT did not converge to a solution (Stall)")
                 break
         
             ii+=1 

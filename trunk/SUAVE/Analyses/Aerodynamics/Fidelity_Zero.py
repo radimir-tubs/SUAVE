@@ -71,7 +71,7 @@ class Fidelity_Zero(Markup):
         settings.number_spanwise_vortices           = None 
         settings.number_chordwise_vortices          = None 
         settings.initial_timestep_offset            = 0.
-        settings.wake_development_time              = 0.05
+        settings.wake_development_time              = 0.03
         settings.number_of_wake_timesteps           = 30
         settings.use_surrogate                      = True
         settings.propeller_wake_model               = False 
