@@ -11,6 +11,7 @@ def save_prop_wake_vtk(VD,filename,Results,i_prop):
     n_time_steps    = len(wVD.XA1[i_prop,:,0,0])
     n_blades        = len(wVD.XA1[i_prop,0,:,0])
     n_radial_rings  = len(wVD.XA1[i_prop,0,0,:])
+    n_props         = len(wVD.XA1[:,0,0,0])
     
     # Create file
     with open(filename, 'w') as f:
@@ -124,6 +125,19 @@ def save_prop_wake_vtk(VD,filename,Results,i_prop):
                 
                 new_vt = str(vt_C)
                 f.write("\n"+new_vt)     
+                
+        ## Third scalar value
+        #f.write("\nSCALARS Gamma float 1")
+        #f.write("\nLOOKUP_TABLE default")  
+        #g_end = int(len(Results['VD'].Wake_single_vector.GAMMA[0])/n_props)
+        #Gamma_prop = Results['VD'].Wake_single_vector.GAMMA[0][0:g_end]
+        #Gamma_blade = Gamma_prop[0:len(Gamma_prop)//n_blades]
+        #for B_idx in range(n_blades):
+            #for i in range(cells_per_blade):
+                #gamma = Gamma_blade[i]
+                
+                #new_gamma = str(gamma)
+                #f.write("\n"+new_gamma)            
                 
     f.close()
         

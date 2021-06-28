@@ -233,5 +233,7 @@ def generate_propeller_wake_distribution(prop,m,VD,init_timestep_offset, time, n
     WD.YB2    =  np.reshape(np.reshape(np.reshape(WD_YB2,mat4_size),mat5_size),mat6_size)
     WD.ZB2    =  np.reshape(np.reshape(np.reshape(WD_ZB2,mat4_size),mat5_size),mat6_size)
     WD.GAMMA  =  np.reshape(np.reshape(np.reshape(WD_GAMMA,mat4_size),mat5_size),mat6_size)
+    
+    VD.Wake_single_vector = WD
 
     return WD, dt, ts, B, Nr 
