@@ -81,6 +81,7 @@ def VLM(conditions,settings,geometry):
     n_sw       = settings.number_spanwise_vortices    
     n_cw       = settings.number_chordwise_vortices 
     pwm        = settings.propeller_wake_model
+    bemt_wake  = settings.use_bemt_wake_model
     ito        = settings.initial_timestep_offset
     nts        = settings.number_of_wake_timesteps 
     wdt        = settings.wake_development_time   
@@ -130,7 +131,7 @@ def VLM(conditions,settings,geometry):
 
     # Build the vector 
     RHS  ,Vx_ind_total , Vz_ind_total , V_distribution , dt = compute_RHS_matrix(n_sw,n_cw,delta,phi,conditions,geometry,\
-                                                                                 pwm,ito,wdt,nts )    
+                                                                                 pwm,bemt_wake,ito,wdt,nts )    
     
     # Build induced velocity matrix, C_mn
     # This is not affected by AoA, so we can use unique mach numbers only
