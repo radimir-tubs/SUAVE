@@ -41,7 +41,8 @@ class Lift_Rotor(Rotor):
         None
         """         
         
-        self.tag      = 'lift_rotor'
+        self.tag                   = 'lift_rotor'
+        self.use_2d_analysis       = True
 
         
 

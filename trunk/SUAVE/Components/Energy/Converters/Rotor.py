@@ -1,5 +1,5 @@
 ## @ingroup Components-Energy-Converters
-# Propeller.py
+# Rotor.py
 #
 # Created:  Jun 2014, E. Botero
 # Modified: Jan 2016, T. MacDonald
@@ -75,8 +75,12 @@ class Rotor(Energy_Component):
         self.ducted                    = False         
         self.number_azimuthal_stations = 24
         self.induced_power_factor      = 1.48     # accounts for interference effects
-        self.profile_drag_coefficient  = .03     
+        self.profile_drag_coefficient  = .03 
+        self.use_2d_analysis           = False    # True if rotor is at an angle relative to freestream or nonuniform freestream
         self.nonuniform_freestream     = False
+        self.axial_velocities_2d       = None     # allows for additional velocity influences at the rotor
+        self.tangential_velocities_2d  = None     # allows for additional velocity influences at the rotor
+        self.radial_velocities_2d      = None     # allows for additional velocity influences at the rotor
 
     def spin(self,conditions):
         """Analyzes a general rotor given geometry and operating conditions.
@@ -142,7 +146,6 @@ class Rotor(Energy_Component):
         self.                                
           number_of_blades                   [-]
           tip_radius                         [m]
-          hub_radius                         [m]
           twist_distribution                 [radians]
           chord_distribution                 [m]
           radius_distribution                [m]
@@ -158,41 +161,49 @@ class Rotor(Energy_Component):
           
         """         
            
-        #Unpack    
+        # Unpack rotor blade parameters
         B       = self.number_of_blades 
         R       = self.tip_radius
-        Rh      = self.hub_radius
         beta_0  = self.twist_distribution
         c       = self.chord_distribution
-        chi     = self.radius_distribution 
+        r       = self.radius_distribution 
         tc      = self.thickness_to_chord
         
-        omega   = self.inputs.omega
+        # Unpack rotor airfoil data
         a_geo   = self.airfoil_geometry      
         a_loc   = self.airfoil_polar_stations  
         cl_sur  = self.airfoil_cl_surrogates
         cd_sur  = self.airfoil_cd_surrogates 
         
-        ua      = self.induced_hover_velocity
-        VTOL    = self.VTOL_flag
+        # Unpack rotor inputs and conditions
+        omega                 = self.inputs.omega
+        ua_self               = self.induced_hover_velocity
+        pitch_c               = self.pitch_command
+        theta                 = self.thrust_angle 
+        Na                    = self.number_azimuthal_stations 
+        nonuniform_freestream = self.nonuniform_freestream
+        use_2d_analysis       = self.use_2d_analysis
+        rotation              = self.rotation
+        
+        # Unpack freestream conditions
         rho     = conditions.freestream.density[:,0,None]
         mu      = conditions.freestream.dynamic_viscosity[:,0,None]
         Vv      = conditions.frames.inertial.velocity_vector 
         a       = conditions.freestream.speed_of_sound[:,0,None]
         T       = conditions.freestream.temperature[:,0,None]
-        pitch_c = self.pitch_command
-        theta   = self.thrust_angle 
-        Na      = self.number_azimuthal_stations 
+        nu      = mu/rho 
+        rho_0   = rho
+        
+        # Helpful shorthands
         BB      = B*B    
         BBB     = BB*B
-        
-        nonuniform_freestream = self.nonuniform_freestream
-        rotation              = self.rotation
+        pi      = np.pi            
+        pi2     = pi*pi         
         
         # calculate total blade pitch
         total_blade_pitch = beta_0 + pitch_c  
          
-        # Velocity in the Body frame
+        # Velocity in the body frame
         T_body2inertial = conditions.frames.body.transform_to_inertial
         T_inertial2body = orientation_transpose(T_body2inertial)
         V_body          = orientation_product(T_inertial2body,Vv)
@@ -200,87 +211,85 @@ class Rotor(Energy_Component):
         T_body2thrust   = orientation_transpose(np.ones_like(T_body2inertial[:])*body2thrust)  
         V_thrust        = orientation_product(T_body2thrust,V_body) 
         
-        if VTOL:
-            V        = V_thrust[:,0,None] + ua
-        else:
-            V        = V_thrust[:,0,None]
-        ut  = np.zeros_like(V)
+        # Account for self-induced hover velocity if nonzero
+        V  = V_thrust[:,0,None] + ua_self
 
-        #Things that don't change with iteration
-        Nr       = len(c) # Number of stations radially    
-        ctrl_pts = len(Vv)
+        # Things that don't change with iteration
+        Nr       = len(c)    # Number of radial stations along single propeller blade    
+        ctrl_pts = len(Vv)   # Number of control points for evaluation of performance
         
-        # set up non dimensional radial distribution  
-        chi      = self.radius_distribution/R
-            
-        V        = V_thrust[:,0,None] 
-        omega    = np.abs(omega)        
-        r        = chi*R            # Radial coordinate 
+        # Non-dimensional radial distribution and differential radius 
+        chi      = r/R
+        deltar   = (r[1]-r[0])  # NOTE: assumes spacing between blade sections is identical!
+        
+        # Check for negative rotation rate
+        if omega <0:
+            print("Negative rotation rate defined! Reverting direction.")
+            omega    = np.abs(omega)
+            rotation = -rotation
+        
+        # Calculating rotational parameters
         omegar   = np.outer(omega,r)
-        pi       = np.pi            
-        pi2      = pi*pi        
-        n        = omega/(2.*pi)    # Cycles per second  
-        nu       = mu/rho  
+        n        = omega/(2.*pi)     # Rotations per second  
         
-        deltar   = (r[1]-r[0])           
-        rho_0    = rho
-        
-        # azimuth distribution 
+        # Azimuthal distribution of stations
         psi            = np.linspace(0,2*pi,Na+1)[:-1]
         psi_2d         = np.tile(np.atleast_2d(psi).T,(1,Nr))
         psi_2d         = np.repeat(psi_2d[np.newaxis, :, :], ctrl_pts, axis=0)    
         
-        # 2D radial distribution non dimensionalized
+        # 2D radial distribution, dimensional and non-dimensionalized
         chi_2d         = np.tile(chi ,(Na,1))            
         chi_2d         = np.repeat(chi_2d[ np.newaxis,:, :], ctrl_pts, axis=0) 
         r_dim_2d       = np.tile(r ,(Na,1))  
         r_dim_2d       = np.repeat(r_dim_2d[ np.newaxis,:, :], ctrl_pts, axis=0)  
      
-        # Setup a Newton iteration
-        diff   = 1. 
-        ii     = 0
-        tol    = 1e-6  # Convergence tolerance
+        # starting with uniform freestream
+        ua       = np.zeros_like(V)              
+        ut       = np.zeros_like(V)             
+        ur       = np.zeros_like(V)      
         
-        use_2d_analysis = False
-        
+        # Include velocities introduced by rotor incidence angle
         if theta !=0:
-            # thrust angle creates disturbances in radial and tangential velocities
-            use_2d_analysis       = True
+            # incidence angle creates disturbances in radial and tangential velocities
+            use_2d_analysis   = True
             
-            # component of freestream in the propeller plane
+            # component of vertical freestream in the rotor plane
             Vz  = V_thrust[:,2,None,None]
             Vz  = np.repeat(Vz, Na,axis=1)
             Vz  = np.repeat(Vz, Nr,axis=2)
             
+            # check for invalid rotation angle
             if (rotation == [1]) or (rotation == [-1]):  
                 pass
-            else: 
+            else:
+                print("Invalid rotation direction. Setting to [1].")
                 rotation = [1]
             
-            # compute resulting radial and tangential velocities in propeller frame
-            ut =  ( Vz*np.cos(psi_2d)  ) * rotation[0]
-            ur =  (-Vz*np.sin(psi_2d)  )
-            ua =  np.zeros_like(ut)
+            # compute resulting radial and tangential velocities in rotor frame
+            ut +=  ( Vz*np.cos(psi_2d)  ) * rotation[0]
+            ur +=  (-Vz*np.sin(psi_2d)  )
+            ua +=  np.zeros_like(ut) 
             
+        # Include external velocities introduced by user  
         if nonuniform_freestream:
             use_2d_analysis   = True
 
-            # account for upstream influences
-            ua = self.axial_velocities_2d
-            ut = self.tangential_velocities_2d
-            ur = self.radial_velocities_2d
-            
+            # include additional influences specified at rotor sections, shape=(ctrl_pts,Na,Nr)
+            ua += self.axial_velocities_2d
+            ut += self.tangential_velocities_2d
+            ur += self.radial_velocities_2d
+
+        
         if use_2d_analysis:
             # make everything 2D with shape (ctrl_pts,Na,Nr)
             size   = (ctrl_pts,Na,Nr)
             PSI    = np.ones(size)
             PSIold = np.zeros(size)
             
-            # 2-D freestream velocity and omega*r
-            V_2d  = V_thrust[:,0,None,None]
-            V_2d  = np.repeat(V_2d, Na,axis=1)
-            V_2d  = np.repeat(V_2d, Nr,axis=2)
-            
+            # 2-D streamwise freestream velocity and omega*r
+            V_2d   = V_thrust[:,0,None,None]
+            V_2d   = np.repeat(V_2d, Na,axis=1)
+            V_2d   = np.repeat(V_2d, Nr,axis=2)
             omegar = (np.repeat(np.outer(omega,r)[:,None,:], Na, axis=1))
             
             # total velocities
@@ -303,11 +312,6 @@ class Rotor(Energy_Component):
             T   = np.repeat(T[:, np.newaxis,  :], Na, axis=1)              
             
         else:
-            # uniform freestream
-            ua       = np.zeros_like(V)              
-            ut       = np.zeros_like(V)             
-            ur       = np.zeros_like(V)
-            
             # total velocities
             Ua     = np.outer((V + ua),np.ones_like(r))
             beta   = total_blade_pitch
@@ -317,9 +321,15 @@ class Rotor(Energy_Component):
             PSI    = np.ones(size)
             PSIold = np.zeros(size)  
         
+        
         # total velocities
         Ut   = omegar - ut
         U    = np.sqrt(Ua*Ua + Ut*Ut + ur*ur)
+        
+        # Setup a Newton iteration
+        diff   = 1. 
+        ii     = 0
+        tol    = 1e-6  # Convergence tolerance        
         
         # Drela's Theory
         while (diff>tol):
@@ -507,7 +517,7 @@ class Rotor(Energy_Component):
                     power                             = power,
                     power_coefficient                 = Cp,    
                     converged_inflow_ratio            = lamdaw,
-                    disc_local_angle_of_attack        = alpha,
+                    disc_effective_angle_of_attack    = alpha,
                     propeller_efficiency              = etap
             ) 
     
