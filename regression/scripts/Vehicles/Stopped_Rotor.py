@@ -532,7 +532,7 @@ def vehicle_setup():
     net.propeller                    = propeller
                                      
     # Lift Rotors                                  
-    rotor                            = SUAVE.Components.Energy.Converters.Rotor() 
+    rotor                            = SUAVE.Components.Energy.Converters.Lift_Rotor() 
     rotor.tip_radius                 = 2.8 * Units.feet
     rotor.hub_radius                 = 0.35 * Units.feet      
     rotor.number_of_blades           = 2

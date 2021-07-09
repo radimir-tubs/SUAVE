@@ -240,7 +240,7 @@ def vehicle_setup():
     Cd                           = Cd0 + Cdi   
 
     # Create propeller geometry  
-    rot                          = SUAVE.Components.Energy.Converters.Rotor() 
+    rot                          = SUAVE.Components.Energy.Converters.Lift_Rotor() 
     rot.y_pitch                  = 1.850
     rot.tip_radius               = 0.8875  
     rot.hub_radius               = 0.15 

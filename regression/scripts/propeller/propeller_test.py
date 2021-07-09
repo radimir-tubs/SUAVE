@@ -114,7 +114,7 @@ def main():
     prop                          = propeller_design(prop)      
     
     # Design a Rotor with airfoil  geometry defined  
-    rot_a                          = SUAVE.Components.Energy.Converters.Rotor() 
+    rot_a                          = SUAVE.Components.Energy.Converters.Lift_Rotor() 
     rot_a.tag                      = "Rot_W_Aifoil"
     rot_a.tip_radius               = 2.8 * Units.feet
     rot_a.hub_radius               = 0.35 * Units.feet      
@@ -140,7 +140,7 @@ def main():
     rot_a                          = propeller_design(rot_a) 
     
     # Design a Rotor without airfoil geometry defined 
-    rot                          = SUAVE.Components.Energy.Converters.Rotor()
+    rot                          = SUAVE.Components.Energy.Converters.Lift_Rotor()
     rot.tag                      = "Rot_No_Aifoil"
     rot.tip_radius               = 2.8 * Units.feet
     rot.hub_radius               = 0.35 * Units.feet      

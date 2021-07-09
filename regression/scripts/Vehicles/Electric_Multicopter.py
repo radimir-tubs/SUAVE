@@ -195,7 +195,7 @@ def vehicle_setup():
     Hover_Load      = vehicle.mass_properties.takeoff*g      # hover load   
     design_tip_mach = 0.7                                    # design tip mach number 
     
-    rotor                        = SUAVE.Components.Energy.Converters.Rotor() 
+    rotor                        = SUAVE.Components.Energy.Converters.Lift_Rotor() 
     rotor.tip_radius             = 3.95 * Units.feet
     rotor.hub_radius             = 0.6  * Units.feet 
     rotor.disc_area              = np.pi*(rotor.tip_radius**2) 

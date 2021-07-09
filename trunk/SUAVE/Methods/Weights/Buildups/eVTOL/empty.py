@@ -1,8 +1,8 @@
 ## @ingroup Methods-Weights-Buildups-eVTOL
 # empty.py
 #
-# Created: Apr, 2019, J. Smart
-# Modified:
+# Created:   Apr, 2019, J. Smart
+# Modified:  July, 2021, R. Erhard
 
 #-------------------------------------------------------------------------------
 # Imports
