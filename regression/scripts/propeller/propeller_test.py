@@ -9,15 +9,11 @@
 # ----------------------------------------------------------------------
 
 import SUAVE
-from SUAVE.Core import Units
+from SUAVE.Core import Data, Units
 from SUAVE.Plots.Geometry_Plots import plot_propeller
 import matplotlib.pyplot as plt  
-from SUAVE.Core import (
-Data, Container,
-)
-
 import numpy as np
-import copy, time
+import copy
 from SUAVE.Methods.Propulsion import propeller_design
 from SUAVE.Components.Energy.Networks.Battery_Propeller import Battery_Propeller
 
@@ -177,7 +173,7 @@ def main():
     
     conditions_r = copy.deepcopy(conditions)
     conditions.frames.inertial.velocity_vector   = np.array([[V,0,0]])
-    conditions_r.frames.inertial.velocity_vector = np.array([[0,Vr,0]])
+    conditions_r.frames.inertial.velocity_vector = np.array([[Vr,0,0]])
     
     # Create and attach this propeller 
     prop_a.inputs.omega  = np.array(prop.angular_velocity,ndmin=2)
@@ -216,16 +212,16 @@ def main():
     Cplast_truth    = 0.08710442
      
     # Truth values for rotor with airfoil geometry defined 
-    Fr_a_truth      = 1447.00288602
-    Qr_a_truth      = 191.05250446
-    Pr_a_truth      = 39578.74342443
-    Cplastr_a_truth = 0.06225539
+    Fr_a_truth      = 1838.86150005
+    Qr_a_truth      = 205.79484206
+    Pr_a_truth      = 42632.78974154
+    Cplastr_a_truth = 0.06705925
     
     # Truth values for rotor without airfoil geometry defined 
-    Fr_truth        = 1290.26055703
-    Qr_truth        = 179.49371868
-    Pr_truth        = 37184.2068134
-    Cplastr_truth   = 0.0584889
+    Fr_truth        = 1272.21306496
+    Qr_truth        = 133.58253806
+    Pr_truth        = 27673.17295724
+    Cplastr_truth   = 0.04352852
  
     # Store errors 
     error = Data()

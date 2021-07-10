@@ -11,12 +11,9 @@
 
 import SUAVE
 from SUAVE.Core import Units 
-import numpy as np
-import pylab as plt 
-import copy, time
 from SUAVE.Plots.Mission_Plots import *
-from SUAVE.Core import Data, Container
 from SUAVE.Methods.Weights.Buildups.eVTOL.empty import empty 
+import numpy as np
 import sys
 
 sys.path.append('../Vehicles')

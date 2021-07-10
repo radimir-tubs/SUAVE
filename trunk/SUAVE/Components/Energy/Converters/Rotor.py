@@ -60,6 +60,7 @@ class Rotor(Energy_Component):
         self.twist_distribution        = 0.0
         self.chord_distribution        = 0.0
         self.thickness_to_chord        = 0.0
+        self.mid_chord_alignment       = 0.0
         self.blade_solidity            = 0.0
         self.thrust_angle              = 0.0
         self.pitch_command             = 0.0 
@@ -223,7 +224,7 @@ class Rotor(Energy_Component):
         deltar   = (r[1]-r[0])  # NOTE: assumes spacing between blade sections is identical!
         
         # Check for negative rotation rate
-        if omega <0:
+        if np.any(omega) <0:
             print("Negative rotation rate defined! Reverting direction.")
             omega    = np.abs(omega)
             rotation = -rotation
@@ -244,9 +245,9 @@ class Rotor(Energy_Component):
         r_dim_2d       = np.repeat(r_dim_2d[ np.newaxis,:, :], ctrl_pts, axis=0)  
      
         # starting with uniform freestream
-        ua       = np.zeros_like(V)              
-        ut       = np.zeros_like(V)             
-        ur       = np.zeros_like(V)      
+        ua       = 0             
+        ut       = 0            
+        ur       = 0     
         
         # Include velocities introduced by rotor incidence angle
         if theta !=0:
