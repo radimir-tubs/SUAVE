@@ -221,7 +221,15 @@ class Rotor(Energy_Component):
         
         # Non-dimensional radial distribution and differential radius 
         chi      = r/R
-        deltar   = (r[1]-r[0])  # NOTE: assumes spacing between blade sections is identical!
+        diff_r   = np.diff(r)
+        deltar   = np.zeros(len(r))
+        for i in range(len(r)):
+            if i==0:
+                deltar[i] = diff_r[i]/2
+            elif i==len(r)-1:
+                deltar[i]   = diff_r[i-1]/2
+            else:
+                deltar[i]   = diff_r[i-1]/2 +diff_r[i]/2
         
         # Check for negative rotation rate
         if np.any(omega) <0:
@@ -242,7 +250,9 @@ class Rotor(Energy_Component):
         chi_2d         = np.tile(chi ,(Na,1))            
         chi_2d         = np.repeat(chi_2d[ np.newaxis,:, :], ctrl_pts, axis=0) 
         r_dim_2d       = np.tile(r ,(Na,1))  
-        r_dim_2d       = np.repeat(r_dim_2d[ np.newaxis,:, :], ctrl_pts, axis=0)  
+        r_dim_2d       = np.repeat(r_dim_2d[ np.newaxis,:, :], ctrl_pts, axis=0)          
+        c_2d           = np.tile(c ,(Na,1)) 
+        c_2d           = np.repeat(c_2d[ np.newaxis,:, :], ctrl_pts, axis=0)  
      
         # starting with uniform freestream
         ua       = 0             
@@ -431,7 +441,13 @@ class Rotor(Energy_Component):
             Va_ind_2d = va
             Vt_ind_2d = vt
             Vt_ind_avg    = np.average(vt, axis=1)
-            Va_ind_avg    = np.average(va, axis=1)          
+            Va_ind_avg    = np.average(va, axis=1)       
+            
+            # compute the hub force / rotor drag distribution along the blade
+            dL_2d    = 0.5*rho*c_2d*Cd*omegar**2*deltar
+            dD_2d    = 0.5*rho*c_2d*Cl*omegar**2*deltar
+            
+            rotor_drag_distribution = np.mean(dL_2d*np.sin(psi_2d) + dD_2d*np.cos(psi_2d),axis=1)            
             
         else:
             Va_2d   = np.repeat(Wa.T[ : , np.newaxis , :], Na, axis=1).T
@@ -446,14 +462,23 @@ class Rotor(Energy_Component):
             Vt_ind_avg              = vt
             Va_ind_avg              = va            
             Va_ind_2d               = np.repeat(va.T[ : , np.newaxis , :], Na, axis=1).T
-            Vt_ind_2d               = np.repeat(vt.T[ : , np.newaxis , :], Na, axis=1).T     
+            Vt_ind_2d               = np.repeat(vt.T[ : , np.newaxis , :], Na, axis=1).T    
+            
+            # compute the hub force / rotor drag distribution along the blade
+            dL    = 0.5*rho*c*Cd*omegar**2*deltar
+            dL_2d = np.repeat(dL[:,None,:], Na, axis=1)
+            dD    = 0.5*rho*c*Cl*omegar**2*deltar            
+            dD_2d = np.repeat(dD[:,None,:], Na, axis=1)
+            
+            rotor_drag_distribution = np.mean(dL_2d*np.sin(psi_2d) + dD_2d*np.cos(psi_2d),axis=1)            
             
         # thrust and torque derivatives on the blade. 
         blade_dT_dr = rho*(Gamma*(Wt-epsilon*Wa))
         blade_dQ_dr = rho*(Gamma*(Wa+epsilon*Wt)*r)     
         
         thrust                  = np.atleast_2d((B * np.sum(blade_T_distribution, axis = 1))).T 
-        torque                  = np.atleast_2d((B * np.sum(blade_Q_distribution, axis = 1))).T         
+        torque                  = np.atleast_2d((B * np.sum(blade_Q_distribution, axis = 1))).T   
+        rotor_drag              = np.atleast_2d((B * np.sum(rotor_drag_distribution, axis=1))).T        
         power                   = omega*torque   
         
         # calculate coefficients 
@@ -461,22 +486,25 @@ class Rotor(Energy_Component):
         Cq       = torque/(rho_0*(n*n)*(D*D*D*D*D)) 
         Ct       = thrust/(rho_0*(n*n)*(D*D*D*D))
         Cp       = power/(rho_0*(n*n*n)*(D*D*D*D*D))
+        Crd      = rotor_drag/(rho_0*(n*n)*(D*D*D*D))
         etap     = V*thrust/power 
 
         # prevent things from breaking 
-        Cq[Cq<0]                                           = 0.  
-        Ct[Ct<0]                                           = 0.  
-        Cp[Cp<0]                                           = 0.  
-        thrust[conditions.propulsion.throttle[:,0] <=0.0]  = 0.0
-        power[conditions.propulsion.throttle[:,0]  <=0.0]  = 0.0 
-        torque[conditions.propulsion.throttle[:,0]  <=0.0] = 0.0
-        thrust[omega<0.0]                                  = - thrust[omega<0.0]  
-        thrust[omega==0.0]                                 = 0.0
-        power[omega==0.0]                                  = 0.0
-        torque[omega==0.0]                                 = 0.0
-        Ct[omega==0.0]                                     = 0.0
-        Cp[omega==0.0]                                     = 0.0 
-        etap[omega==0.0]                                   = 0.0 
+        Cq[Cq<0]                                               = 0.  
+        Ct[Ct<0]                                               = 0.  
+        Cp[Cp<0]                                               = 0.  
+        thrust[conditions.propulsion.throttle[:,0] <=0.0]      = 0.0
+        power[conditions.propulsion.throttle[:,0]  <=0.0]      = 0.0 
+        torque[conditions.propulsion.throttle[:,0]  <=0.0]     = 0.0
+        rotor_drag[conditions.propulsion.throttle[:,0]  <=0.0] = 0.0
+        thrust[omega<0.0]                                      = - thrust[omega<0.0]  
+        thrust[omega==0.0]                                     = 0.0
+        power[omega==0.0]                                      = 0.0
+        torque[omega==0.0]                                     = 0.0
+        rotor_drag[omega==0.0]                                 = 0.0
+        Ct[omega==0.0]                                         = 0.0
+        Cp[omega==0.0]                                         = 0.0 
+        etap[omega==0.0]                                       = 0.0 
         
         # assign efficiency to network
         conditions.propulsion.etap = etap   
@@ -519,7 +547,10 @@ class Rotor(Energy_Component):
                     power_coefficient                 = Cp,    
                     converged_inflow_ratio            = lamdaw,
                     disc_effective_angle_of_attack    = alpha,
-                    propeller_efficiency              = etap
+                    propeller_efficiency              = etap,
+                    blade_H_distribution              = rotor_drag_distribution,
+                    rotor_drag                        = rotor_drag,
+                    rotor_drag_coefficient            = Crd
             ) 
     
         return thrust, torque, power, Cp, outputs , etap
