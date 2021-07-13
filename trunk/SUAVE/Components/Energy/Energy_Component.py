@@ -48,4 +48,4 @@ class Energy_Component(Physical_Component):
         # function handles for output
         self.outputs = Data()
         
-        return
+        
