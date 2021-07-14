@@ -220,17 +220,13 @@ class Rotor(Energy_Component):
         ctrl_pts = len(Vv)   # Number of control points for evaluation of performance
         
         # Non-dimensional radial distribution and differential radius 
-        chi      = r/R
-        diff_r   = np.diff(r)
-        deltar   = np.zeros(len(r))
-        for i in range(len(r)):
-            if i==0:
-                deltar[i] = diff_r[i]/2
-            elif i==len(r)-1:
-                deltar[i]   = diff_r[i-1]/2
-            else:
-                deltar[i]   = diff_r[i-1]/2 +diff_r[i]/2
-        
+        chi          = r/R
+        diff_r       = np.diff(r)
+        deltar       = np.zeros(len(r))
+        deltar[1:-1] = diff_r[0:-1]/2 + diff_r[1:]/2
+        deltar[0]    = diff_r[0]/2
+        deltar[-1]   = diff_r[-1]/2
+
         # Check for negative rotation rate
         if np.any(omega) <0:
             print("Negative rotation rate defined! Reverting direction.")
